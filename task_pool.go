@@ -15,7 +15,7 @@ type RequesterID interface {
 type TaskPool[ID RequesterID] interface {
 	Run(ID, Task) // block until your turn
 	TryRun(ID, Task) bool
-	RunUnblock(ID, Task)
+	BlockRun(ID, Task)
 	Join()
 }
 
@@ -96,7 +96,7 @@ func (p *taskPool[ID]) TryRun(id ID, t Task) bool {
 	return true
 }
 
-func (p *taskPool[ID]) RunUnblock(id ID, t Task) {
+func (p *taskPool[ID]) BlockRun(id ID, t Task) {
 	ch := p.getRequestWorkers(id)
 	permit := <-ch
 	defer func() {

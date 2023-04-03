@@ -103,3 +103,34 @@ func TestTaskPoolRequestNotThrottled(t *testing.T) {
 	assert.Equal(t, 2, len(ts))
 	assert.Less(t, ts[0].Sub(ts[1]).Abs(), peroid)
 }
+
+func TestTaskPoolTryRun(t *testing.T) {
+	pool := NewTaskPool[int](3, 1)
+
+	task := func() {
+		time.Sleep(peroid)
+	}
+
+	pool.Run(1, task)
+	result := pool.TryRun(1, task)
+	assert.False(t, result)
+
+	pool.Join()
+}
+
+func TestTaskPoolRunBlock(t *testing.T) {
+	pool := NewTaskPool[int](2, 2)
+
+	t1 := time.Now()
+	task := func() {
+		time.Sleep(2 * peroid)
+	}
+	pool.BlockRun(1, task)
+	t2 := time.Now()
+	pool.Run(1, task)
+	t3 := time.Now()
+
+	pool.Join()
+	assert.Greater(t, t2.Sub(t1).Abs(), peroid)
+	assert.Less(t, t3.Sub(t2).Abs(), peroid)
+}
